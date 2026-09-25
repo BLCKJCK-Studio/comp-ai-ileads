@@ -5,6 +5,7 @@ describe('isStaticTrustedOrigin', () => {
 
   beforeEach(() => {
     delete process.env.AUTH_TRUSTED_ORIGINS;
+    delete process.env.AUTH_DISABLE_WILDCARD_ORIGINS;
   });
 
   afterAll(() => {
@@ -38,6 +39,15 @@ describe('isStaticTrustedOrigin', () => {
     process.env.AUTH_TRUSTED_ORIGINS = 'http://localhost:4000';
     expect(isStaticTrustedOrigin('http://localhost:4000')).toBe(true);
     expect(isStaticTrustedOrigin('http://localhost:3000')).toBe(false);
+  });
+
+  it('drops the Comp AI wildcard domains when AUTH_DISABLE_WILDCARD_ORIGINS=1', () => {
+    process.env.AUTH_TRUSTED_ORIGINS = 'https://compliance.example.com';
+    process.env.AUTH_DISABLE_WILDCARD_ORIGINS = '1';
+    expect(isStaticTrustedOrigin('https://compliance.example.com')).toBe(true);
+    expect(isStaticTrustedOrigin('https://anything.trycomp.ai')).toBe(false);
+    expect(isStaticTrustedOrigin('https://anything.trust.inc')).toBe(false);
+    expect(isStaticTrustedOrigin('https://trust.inc')).toBe(false);
   });
 
   it('rejects unrelated and malformed origins', () => {

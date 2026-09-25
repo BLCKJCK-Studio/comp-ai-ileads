@@ -12,6 +12,12 @@ if [ "${VERCEL:-}" != "1" ]; then
 fi
 
 cd "$(dirname "$0")"
+# `vercel build` on a laptop also sets VERCEL=1; this script deletes sources,
+# so additionally require Vercel's build container (/vercel/path0/...).
+case "$(pwd -P)" in
+  /vercel/*) ;;
+  *) echo "vercel-prepare: not inside Vercel's build container, skipping"; exit 0 ;;
+esac
 [ -f dist/src/main.js ] || { echo "vercel-prepare: dist/src/main.js missing, run nest build first"; exit 1; }
 
 cp -R dist/src/. src/

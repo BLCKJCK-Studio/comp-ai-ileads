@@ -92,6 +92,8 @@ export function isStaticTrustedOrigin(origin: string): boolean {
     // Only the explicit DEFAULT_TRUSTED_ORIGINS entries above may be plain
     // HTTP (localhost). The wildcard suffix match is HTTPS-only.
     if (url.protocol !== 'https:') return false;
+    // Self-hosted deployments on their own domain don't trust Comp AI's.
+    if (process.env.AUTH_DISABLE_WILDCARD_ORIGINS === '1') return false;
     return (
       url.hostname.endsWith('.trycomp.ai') ||
       url.hostname.endsWith('.staging.trycomp.ai') ||
