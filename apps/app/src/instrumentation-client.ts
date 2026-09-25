@@ -11,8 +11,7 @@ initBotId({
 
 Sentry.init({
   dsn:
-    process.env.NEXT_PUBLIC_SENTRY_DSN ??
-    'https://331f1c3d4b08e9352dd1a2621e1ae845@o4509214247813120.ingest.us.sentry.io/4511304630927360',
+    process.env.NEXT_PUBLIC_SENTRY_DSN, // no upstream fallback: self-hosted errors must not reach Comp AI's Sentry
 
   // Only report from production. NEXT_PUBLIC_VERCEL_ENV is inlined at build time
   // per Vercel deployment; preview/dev builds (or a missing var) keep Sentry

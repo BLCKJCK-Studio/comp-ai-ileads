@@ -7,8 +7,7 @@ import * as Sentry from '@sentry/nextjs';
 
 Sentry.init({
   dsn:
-    process.env.SENTRY_DSN ??
-    'https://331f1c3d4b08e9352dd1a2621e1ae845@o4509214247813120.ingest.us.sentry.io/4511304630927360',
+    process.env.SENTRY_DSN, // no upstream fallback: self-hosted errors must not reach Comp AI's Sentry
 
   // Only report from production. On Vercel, VERCEL_ENV is 'production' | 'preview'
   // | 'development'; on any non-production deployment (or if the var is missing)
