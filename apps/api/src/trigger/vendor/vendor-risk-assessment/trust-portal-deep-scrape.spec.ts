@@ -9,8 +9,9 @@ jest.mock('@trigger.dev/sdk', () => ({
   },
 }));
 
-jest.mock('@ai-sdk/anthropic', () => ({
-  anthropic: jest.fn(() => 'claude-mock-model'),
+jest.mock('@/lib/ai/models', () => ({
+  aiGateway: jest.fn(() => 'claude-mock-model'),
+  CLAUDE_MODEL: 'anthropic/claude-opus-5',
 }));
 
 const generateObjectMock = jest.fn();

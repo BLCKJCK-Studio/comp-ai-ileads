@@ -1,13 +1,12 @@
-import { env } from '@/env.mjs';
 import { serverApi } from '@/lib/api-server';
 import { auth } from '@/utils/auth';
-import { openai } from '@ai-sdk/openai';
+import { aiGateway, CLAUDE_MODEL } from '@/lib/ai/models';
 import { generateObject } from 'ai';
 import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
-export const maxDuration = 30;
+export const maxDuration = 120; // Claude Opus 5 with adaptive thinking can exceed 30s
 
 const meetingTypeRequirements: Record<string, string[]> = {
   'board-meeting': [
@@ -84,10 +83,6 @@ interface AuthMeResponse {
 }
 
 export async function POST(req: Request) {
-  if (!env.OPENAI_API_KEY) {
-    return NextResponse.json({ error: 'AI analysis is not configured.' }, { status: 500 });
-  }
-
   const session = await auth.api.getSession({
     headers: await headers(),
   });
@@ -185,7 +180,7 @@ For each requirement, determine if the exercise documentation adequately address
 
   try {
     const { object } = await generateObject({
-      model: openai('gpt-4o-mini'),
+      model: aiGateway(CLAUDE_MODEL),
       schema: analysisResultSchema,
       system: systemPrompt,
       prompt: userPrompt,

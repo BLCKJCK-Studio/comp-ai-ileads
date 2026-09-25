@@ -1,5 +1,4 @@
-import { openai } from '@ai-sdk/openai';
-import { anthropic } from '@ai-sdk/anthropic';
+import { aiGateway } from '@/lib/ai/models';
 import { generateText } from 'ai';
 import ExcelJS from 'exceljs';
 import AdmZip from 'adm-zip';
@@ -337,7 +336,7 @@ export async function extractContentFromFile(
     return extractFromPdf(fileData, logger);
   }
 
-  // Handle images using OpenAI vision API
+  // Handle images using Claude vision (via the AI Gateway)
   if (isImageFile(fileType)) {
     return extractFromVision(fileData, fileType, logger);
   }
@@ -777,11 +776,13 @@ async function extractPdfText(params: {
   try {
     return await extractPdfWithClaude(params);
   } catch (error) {
-    params.logger.warn('Claude PDF extraction failed, trying OpenAI fallback', {
+    // Transient gateway/provider errors (e.g. "Overloaded") usually clear on
+    // a second attempt; there is no second vendor to fall back to anymore.
+    params.logger.warn('Claude PDF extraction failed, retrying once', {
       label: params.label,
       error: error instanceof Error ? error.message : 'Unknown error',
     });
-    return extractPdfWithOpenAI(params);
+    return extractPdfWithClaude(params);
   }
 }
 
@@ -794,35 +795,7 @@ async function extractPdfWithClaude(params: {
     label: params.label,
   });
   const { text } = await generateText({
-    model: anthropic('claude-sonnet-4-6'),
-    messages: [
-      {
-        role: 'user',
-        content: [
-          { type: 'text', text: VISION_EXTRACTION_PROMPT },
-          {
-            type: 'file',
-            data: params.fileData,
-            mediaType: 'application/pdf',
-          },
-        ],
-      },
-    ],
-  });
-
-  return text;
-}
-
-async function extractPdfWithOpenAI(params: {
-  fileData: string;
-  logger: ContentExtractionLogger;
-  label: string;
-}): Promise<string> {
-  params.logger.info('Extracting PDF text with OpenAI fallback', {
-    label: params.label,
-  });
-  const { text } = await generateText({
-    model: openai(PARSING_MODEL),
+    model: aiGateway(PARSING_MODEL),
     messages: [
       {
         role: 'user',
@@ -860,7 +833,7 @@ async function extractFromVision(
 
   try {
     const { text } = await generateText({
-      model: openai(PARSING_MODEL),
+      model: aiGateway(PARSING_MODEL),
       messages: [
         {
           role: 'user',

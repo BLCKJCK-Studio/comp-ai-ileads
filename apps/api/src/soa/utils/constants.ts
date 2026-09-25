@@ -2,9 +2,11 @@
  * SOA-specific constants and prompts
  */
 
-// LLM Model identifiers
-export const SOA_RAG_MODEL = 'gpt-5-mini';
-export const SOA_BATCH_MODEL = 'gpt-4o-mini';
+import { CLAUDE_MODEL } from '@/lib/ai/model-ids';
+
+// LLM Model identifiers (Vercel AI Gateway ids; single source in @/lib/ai/models)
+export const SOA_RAG_MODEL = CLAUDE_MODEL;
+export const SOA_BATCH_MODEL = CLAUDE_MODEL;
 
 // Supported framework names for ISO 27001
 export const ISO27001_FRAMEWORK_NAMES = ['ISO 27001', 'iso27001', 'ISO27001'];

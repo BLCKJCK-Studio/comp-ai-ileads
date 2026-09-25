@@ -1,4 +1,7 @@
-jest.mock('@ai-sdk/openai', () => ({ openai: jest.fn() }));
+jest.mock('@/lib/ai/models', () => ({
+  aiGateway: jest.fn(() => 'claude-model'),
+  CLAUDE_MODEL: 'anthropic/claude-opus-5',
+}));
 jest.mock('ai', () => ({
   generateObject: jest.fn(),
   jsonSchema: jest.fn((s) => s),

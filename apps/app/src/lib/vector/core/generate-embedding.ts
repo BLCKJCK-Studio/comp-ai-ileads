@@ -1,22 +1,17 @@
 import 'server-only';
 
-import { openai } from '@ai-sdk/openai';
+import { aiGateway, EMBEDDING_MODEL_SMALL } from '@/lib/ai/models';
 import { embed } from 'ai';
-import { env } from '@/env.mjs';
 
 /**
- * Generates an embedding vector for the given text using OpenAI's embedding model
+ * Generates an embedding vector for the given text using OpenAI text-embedding-3-small (1536 dims) via the Vercel AI Gateway
  * @param text - The text to generate an embedding for
  * @returns An array of numbers representing the embedding vector
  */
 export async function generateEmbedding(text: string): Promise<number[]> {
-  if (!env.OPENAI_API_KEY) {
-    throw new Error('OPENAI_API_KEY is not configured');
-  }
-
   try {
     const { embedding } = await embed({
-      model: openai.embedding('text-embedding-3-small'),
+      model: aiGateway.embeddingModel(EMBEDDING_MODEL_SMALL),
       value: text,
     });
 

@@ -1,5 +1,5 @@
 import { logger } from '@trigger.dev/sdk';
-import { anthropic } from '@ai-sdk/anthropic';
+import { aiGateway, CLAUDE_MODEL } from '@/lib/ai/models';
 import { generateObject } from 'ai';
 import { z } from 'zod';
 
@@ -11,7 +11,7 @@ import { z } from 'zod';
  * can click each by text content.
  */
 
-const TAB_MODEL = 'claude-sonnet-4-6';
+const TAB_MODEL = CLAUDE_MODEL;
 const MAX_TABS = 15;
 const MARKDOWN_LIMIT = 12_000;
 
@@ -62,7 +62,7 @@ export async function identifySidebarTabs(params: {
 
   try {
     const { object } = await generateObject({
-      model: anthropic(TAB_MODEL),
+      model: aiGateway(TAB_MODEL),
       schema: tabSchema,
       prompt: buildPrompt({ vendorName, initialMarkdown }),
     });

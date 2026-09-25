@@ -1,7 +1,7 @@
 import 'server-only';
 
 import { Index, type RangeResult } from '@upstash/vector';
-import { openai } from '@ai-sdk/openai';
+import { aiGateway, EMBEDDING_MODEL_LARGE } from '@/lib/ai/models';
 import { embedMany } from 'ai';
 import { createHash } from 'node:crypto';
 
@@ -54,7 +54,13 @@ export interface SimilarTaskResult {
 // while keeping the existing Upstash Vector index (which is provisioned at
 // 1536 dims) usable as-is. Bumping to the full 3072 dims would require a
 // new index + a one-time re-embed of every org.
-const EMBEDDING_MODEL = 'text-embedding-3-large';
+// Routed through the Vercel AI Gateway (id: openai/text-embedding-3-large).
+// The dimensions provider option is forwarded to OpenAI by the gateway.
+const EMBEDDING_MODEL = EMBEDDING_MODEL_LARGE;
+// Model name as it appears in stored content hashes. Kept without the gateway
+// `openai/` prefix: the vectors are identical, so existing hashes stay valid
+// and moving to the gateway does not force a re-embed of every org.
+const EMBEDDING_HASH_MODEL_KEY = 'text-embedding-3-large';
 const EMBEDDING_DIMENSIONS = 1536;
 const DEFAULT_TOP_K = 25;
 // Pagination for enumerating an org's task vectors by their shared id prefix —
@@ -123,7 +129,7 @@ export function computeEntityContentHash({
   department?: string;
 }): string {
   return createHash('sha256')
-    .update(`${EMBEDDING_MODEL}:${EMBEDDING_DIMENSIONS}:${department ?? ''}:${text}`)
+    .update(`${EMBEDDING_HASH_MODEL_KEY}:${EMBEDDING_DIMENSIONS}:${department ?? ''}:${text}`)
     .digest('hex');
 }
 
@@ -160,7 +166,7 @@ export async function upsertEntityEmbeddings({
   }
 
   const { embeddings } = await embedMany({
-    model: openai.embedding(EMBEDDING_MODEL),
+    model: aiGateway.embeddingModel(EMBEDDING_MODEL),
     values: toEmbed.map(({ entity }) => entity.text),
     providerOptions: { openai: { dimensions: EMBEDDING_DIMENSIONS } },
   });
@@ -281,7 +287,7 @@ export async function findSimilarTasks({
   if (!queryText.trim()) return [];
 
   const { embeddings } = await embedMany({
-    model: openai.embedding(EMBEDDING_MODEL),
+    model: aiGateway.embeddingModel(EMBEDDING_MODEL),
     values: [queryText],
     providerOptions: { openai: { dimensions: EMBEDDING_DIMENSIONS } },
   });

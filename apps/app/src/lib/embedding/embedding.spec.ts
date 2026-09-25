@@ -17,10 +17,11 @@ vi.mock('@upstash/vector', () => ({
   })),
 }));
 
-vi.mock('@ai-sdk/openai', () => ({
-  openai: {
-    embedding: () => 'mock-embedding-model',
+vi.mock('@/lib/ai/models', () => ({
+  aiGateway: {
+    embeddingModel: () => 'mock-embedding-model',
   },
+  EMBEDDING_MODEL_LARGE: 'openai/text-embedding-3-large',
 }));
 
 vi.mock('ai', () => ({
@@ -36,7 +37,9 @@ import {
   cosineToUnitScore,
   waitForIndexed,
   pruneOrphanTaskVectors,
+  computeEntityContentHash,
 } from './index';
+import { createHash } from 'node:crypto';
 
 beforeEach(() => {
   upsertMock.mockReset();
@@ -516,5 +519,16 @@ describe('pruneOrphanTaskVectors', () => {
     );
     expect(errSpy).toHaveBeenCalled();
     errSpy.mockRestore();
+  });
+});
+
+describe('computeEntityContentHash', () => {
+  it('keeps the pre-gateway model key so existing hashes stay valid', () => {
+    const expected = createHash('sha256')
+      .update('text-embedding-3-large:1536:it:phishing risk')
+      .digest('hex');
+    expect(computeEntityContentHash({ text: 'phishing risk', department: 'it' })).toBe(
+      expected,
+    );
   });
 });

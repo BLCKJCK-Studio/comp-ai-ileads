@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { generateObject } from 'ai';
-import { anthropic } from '@ai-sdk/anthropic';
+import { aiGateway, CLAUDE_MODEL } from '@/lib/ai/models';
 import {
   CHECK_DESCRIPTION_SYSTEM_PROMPT,
   buildCheckDescriptionPrompt,
@@ -11,11 +11,11 @@ import {
 } from './ai-description.prompt';
 
 /**
- * Haiku 4.5 — cheap, fast, plenty good for descriptive text. Locked here
- * so cache invalidation can detect model upgrades via `modelVersion`.
+ * Gateway model id (CLAUDE_MODEL). Stored as `modelVersion` so cache
+ * invalidation detects model upgrades and refreshes cached descriptions.
  */
-export const DESCRIPTION_MODEL_VERSION = 'claude-haiku-4-5';
-const MODEL = anthropic(DESCRIPTION_MODEL_VERSION);
+export const DESCRIPTION_MODEL_VERSION = CLAUDE_MODEL;
+const MODEL = aiGateway(DESCRIPTION_MODEL_VERSION);
 
 @Injectable()
 export class AiDescriptionService {
@@ -34,7 +34,6 @@ export class AiDescriptionService {
         schema: checkDescriptionSchema,
         system: CHECK_DESCRIPTION_SYSTEM_PROMPT,
         prompt: buildCheckDescriptionPrompt(input),
-        temperature: 0,
       });
 
       // Server-side backstop: if Haiku slipped past the prompt and emitted

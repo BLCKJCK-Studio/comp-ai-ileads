@@ -5,9 +5,10 @@ import { PDFDocument } from 'pdf-lib';
 import { generateText } from 'ai';
 
 // Mock AI dependencies
-jest.mock('@ai-sdk/openai', () => ({ openai: jest.fn() }));
-jest.mock('@ai-sdk/anthropic', () => ({ anthropic: jest.fn() }));
-jest.mock('@ai-sdk/groq', () => ({ createGroq: jest.fn(() => jest.fn()) }));
+jest.mock('@/lib/ai/models', () => ({
+  aiGateway: jest.fn(() => 'claude-model'),
+  CLAUDE_MODEL: 'anthropic/claude-opus-5',
+}));
 jest.mock('ai', () => ({
   generateText: jest.fn(),
   generateObject: jest.fn(),
@@ -113,7 +114,7 @@ describe('content-extractor: extractContentFromFile', () => {
     expect(result).toContain('What is 2+2?,4');
   });
 
-  it('should fall back to OpenAI when Claude PDF extraction is overloaded', async () => {
+  it('should retry once when Claude PDF extraction is overloaded', async () => {
     const pdf = await PDFDocument.create();
     pdf.addPage();
     const bytes = await pdf.save();

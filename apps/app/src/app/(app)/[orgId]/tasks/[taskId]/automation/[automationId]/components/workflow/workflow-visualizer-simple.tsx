@@ -1,5 +1,6 @@
 'use client';
 
+import { CLAUDE_MODEL } from '@/lib/ai/model-ids';
 import { cn } from '@/lib/utils';
 import { useChat } from '@ai-sdk/react';
 import { Button } from '@trycompai/ui/button';
@@ -229,7 +230,7 @@ Please fix the automation script to resolve this error.`;
       { text: errorMessage },
       {
         body: {
-          modelId: 'google/gemini-3.1-flash-lite',
+          modelId: CLAUDE_MODEL,
           reasoningEffort: 'high',
           orgId,
           taskId,

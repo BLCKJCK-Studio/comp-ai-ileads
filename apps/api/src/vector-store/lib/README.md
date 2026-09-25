@@ -30,7 +30,7 @@ lib/vector/
    ```
    UPSTASH_VECTOR_REST_URL=your_vector_rest_url
    UPSTASH_VECTOR_REST_TOKEN=your_vector_rest_token
-   OPENAI_API_KEY=your_openai_api_key
+   AI_GATEWAY_API_KEY=your_vercel_ai_gateway_key  # not needed on Vercel (OIDC)
    ```
 
 3. **Automatic Embedding Creation**

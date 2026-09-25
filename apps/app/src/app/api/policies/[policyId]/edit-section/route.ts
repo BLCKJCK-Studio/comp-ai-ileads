@@ -1,11 +1,11 @@
 import { auth } from '@/utils/auth';
-import { anthropic } from '@ai-sdk/anthropic';
+import { aiGateway, CLAUDE_MODEL } from '@/lib/ai/models';
 import { generateText } from 'ai';
 import { headers } from 'next/headers';
 import { NextResponse } from 'next/server';
 import { sanitizeMarkdown } from '../../../../(app)/[orgId]/policies/[policyId]/editor/lib/policy-markdown';
 
-export const maxDuration = 30;
+export const maxDuration = 120; // Claude Opus 5 with adaptive thinking can exceed 30s
 
 /**
  * Standalone API for editing a specific section of a policy suggestion.
@@ -33,7 +33,7 @@ export async function POST(req: Request) {
     }
 
     const result = await generateText({
-      model: anthropic('claude-sonnet-4-6'),
+      model: aiGateway(CLAUDE_MODEL),
       // A single section is small; cap output so a runaway generation can't hang
       // the 30s request, and so we get a clean stop rather than a truncated edit.
       maxOutputTokens: 4000,

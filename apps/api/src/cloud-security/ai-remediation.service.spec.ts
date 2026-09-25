@@ -1,8 +1,9 @@
 // Mock @db before importing the service so the Prisma client doesn't try
 // to connect at import time in this unit-test env.
 jest.mock('@db', () => ({}));
-jest.mock('@ai-sdk/anthropic', () => ({
-  anthropic: () => null,
+jest.mock('@/lib/ai/models', () => ({
+  aiGateway: () => null,
+  CLAUDE_MODEL: 'anthropic/claude-opus-5',
 }));
 jest.mock('ai', () => ({
   generateObject: jest.fn(),

@@ -5,7 +5,6 @@ import {
   Delete,
   Get,
   HttpCode,
-  HttpException,
   HttpStatus,
   NotFoundException,
   Param,
@@ -33,7 +32,7 @@ import {
   ApiExtraModels,
 } from '@nestjs/swagger';
 import type { Response } from 'express';
-import { openai } from '@ai-sdk/openai';
+import { aiGateway, CLAUDE_MODEL } from '@/lib/ai/models';
 import { streamText, convertToModelMessages, type UIMessage } from 'ai';
 import { db } from '@db';
 import { auth as triggerAuth, tasks } from '@trigger.dev/sdk';
@@ -1513,13 +1512,6 @@ export class PoliciesController {
     @Body() body: AISuggestPolicyRequestDto,
     @Res() res: Response,
   ) {
-    if (!process.env.OPENAI_API_KEY) {
-      throw new HttpException(
-        'AI service not configured',
-        HttpStatus.SERVICE_UNAVAILABLE,
-      );
-    }
-
     const policy = await this.policiesService.findById(id, organizationId);
 
     // Use currentVersion content if available, fallback to policy.content for backward compatibility
@@ -1567,7 +1559,7 @@ Keep responses helpful and focused on the policy editing task.`;
     ];
 
     const result = streamText({
-      model: openai('gpt-5.5'),
+      model: aiGateway(CLAUDE_MODEL),
       system: systemPrompt,
       messages: await convertToModelMessages(messages),
     });

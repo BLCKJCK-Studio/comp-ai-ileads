@@ -48,9 +48,9 @@ jest.mock('ai', () => ({
   NoObjectGeneratedError: { isInstance: jest.fn(() => false) },
 }));
 
-jest.mock('@ai-sdk/openai', () => ({ openai: jest.fn(() => 'openai-model') }));
-jest.mock('@ai-sdk/anthropic', () => ({
-  anthropic: jest.fn(() => 'anthropic-model'),
+jest.mock('@/lib/ai/models', () => ({
+  aiGateway: jest.fn(() => 'claude-model'),
+  CLAUDE_MODEL: 'anthropic/claude-opus-5',
 }));
 
 // A real TipTap template carrying an org-specific handlebars placeholder. The

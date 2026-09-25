@@ -1,12 +1,19 @@
-import { createGatewayProvider } from '@ai-sdk/gateway';
-import type { OpenAIResponsesProviderOptions } from '@ai-sdk/openai';
+import { aiGateway, CLAUDE_MODEL } from '@/lib/ai/models';
 import type { LanguageModelV3 } from '@ai-sdk/provider';
 import type { JSONValue } from 'ai';
 
+const CLAUDE_MODEL_PREFIX = 'anthropic/';
+
+function isClaudeModelId(modelId: string): boolean {
+  return modelId.startsWith(CLAUDE_MODEL_PREFIX);
+}
+
+/** Only Claude models are offered; every model call goes through the AI Gateway. */
 export async function getAvailableModels() {
-  const gateway = gatewayInstance();
-  const response = await gateway.getAvailableModels();
-  return response.models.map((model) => ({ id: model.id, name: model.name }));
+  const response = await aiGateway.getAvailableModels();
+  return response.models
+    .filter((model) => isClaudeModelId(model.id))
+    .map((model) => ({ id: model.id, name: model.name }));
 }
 
 export interface ModelOptions {
@@ -15,27 +22,11 @@ export interface ModelOptions {
   headers?: Record<string, string>;
 }
 
-export function getModelOptions(
-  modelId: string,
-  options?: { reasoningEffort?: 'minimal' | 'low' | 'medium' },
-): ModelOptions {
-  const gateway = gatewayInstance();
-
-  return {
-    model: gateway(modelId),
-    providerOptions: {
-      openai: {
-        include: ['reasoning.encrypted_content'],
-        reasoningEffort: options?.reasoningEffort ?? 'low',
-        reasoningSummary: 'auto',
-        serviceTier: 'priority',
-      } satisfies OpenAIResponsesProviderOptions,
-    },
-  };
-}
-
-function gatewayInstance() {
-  return createGatewayProvider({
-    baseURL: process.env.AI_GATEWAY_BASE_URL,
-  });
+/**
+ * Resolves a model for the automation agent. Non-Claude ids (e.g. stale ids
+ * persisted by older clients) fall back to CLAUDE_MODEL.
+ */
+export function getModelOptions(modelId: string): ModelOptions {
+  const resolvedModelId = isClaudeModelId(modelId) ? modelId : CLAUDE_MODEL;
+  return { model: aiGateway(resolvedModelId) };
 }

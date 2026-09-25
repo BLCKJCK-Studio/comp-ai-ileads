@@ -1,3 +1,4 @@
+import { CLAUDE_MODEL } from '@/lib/ai/model-ids';
 import { api } from '@/lib/api-client';
 import { useRouter } from 'next/navigation';
 import { useCallback } from 'react';
@@ -74,7 +75,7 @@ export function useChatHandlers({
         { text },
         {
           body: {
-            modelId: 'google/gemini-3.1-flash-lite',
+            modelId: CLAUDE_MODEL,
             reasoningEffort: 'high',
             orgId,
             taskId,
@@ -96,7 +97,7 @@ export function useChatHandlers({
         },
         {
           body: {
-            modelId: 'google/gemini-3.1-flash-lite',
+            modelId: CLAUDE_MODEL,
             reasoningEffort: 'high',
             orgId,
             taskId,
@@ -120,7 +121,7 @@ export function useChatHandlers({
         },
         {
           body: {
-            modelId: 'google/gemini-3.1-flash-lite',
+            modelId: CLAUDE_MODEL,
             reasoningEffort: 'high',
             orgId,
             taskId,

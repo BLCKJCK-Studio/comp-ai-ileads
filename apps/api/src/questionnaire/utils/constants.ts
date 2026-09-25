@@ -2,6 +2,8 @@
  * Shared constants for questionnaire module
  */
 
+import { CLAUDE_MODEL } from '@/lib/ai/model-ids';
+
 // Chunk sizes for questionnaire item classification
 export const MAX_CHUNK_SIZE_CHARS = 25_000;
 export const MIN_CHUNK_SIZE_CHARS = 5_000;
@@ -11,9 +13,9 @@ export const MAX_CLASSIFICATION_CONCURRENCY = 4;
 // File size limits
 export const MAX_FILE_SIZE_BYTES = 100 * 1024 * 1024; // 100MB
 
-// LLM Model identifiers
-export const PARSING_MODEL = 'gpt-5-mini';
-export const ANSWER_MODEL = 'gpt-4o-mini';
+// LLM Model identifiers (Vercel AI Gateway ids; single source in @/lib/ai/models)
+export const PARSING_MODEL = CLAUDE_MODEL;
+export const ANSWER_MODEL = CLAUDE_MODEL;
 
 // System prompts for answer generation
 export const ANSWER_SYSTEM_PROMPT = `You are an expert at answering security and compliance questions for vendor questionnaires.
