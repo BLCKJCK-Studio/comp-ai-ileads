@@ -18,3 +18,13 @@ cp -R dist/src/. src/
 cp -R dist/prisma/. prisma/
 find src prisma -name '*.ts' ! -name '*.d.ts' -delete
 echo "vercel-prepare: using compiled src/main.js"
+
+# @trycompai/utils ships raw .ts (exports -> src/*.ts). Vercel doesn't bundle
+# those and Node won't strip types under node_modules, so transpile in place
+# and point its exports at the .js files.
+UTILS=../../packages/utils
+UTILS_SRC=$(ls "$UTILS"/src/*.ts | grep -v '\.test\.ts$')
+# shellcheck disable=SC2086
+../../node_modules/.bin/esbuild $UTILS_SRC --outdir="$UTILS/src" --format=cjs --platform=node --target=node22 --log-level=warning
+sed -i.bak -E 's#(\./)?src/([a-z-]+)\.ts"#./src/\2.js"#g' "$UTILS/package.json" && rm -f "$UTILS/package.json.bak"
+echo "vercel-prepare: transpiled @trycompai/utils"
