@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
+import tls from 'node:tls';
 
 const globalForPrisma = global as unknown as { prisma?: PrismaClient };
 
@@ -25,6 +26,8 @@ function createPrismaClient(): PrismaClient {
   const rawUrl = process.env.DATABASE_URL!;
   const isLocalhost = isLocalhostUrl(rawUrl);
   const allowInsecure = process.env.PRISMA_ALLOW_INSECURE_TLS === '1';
+  // Private-root providers (e.g. Supabase): add the PEM to Node's roots, full verification.
+  const caCert = process.env.DATABASE_CA_CERT;
 
   // Verified TLS via Node's default trust store, which includes Amazon Root
   // CA 1 — where AWS RDS Proxy chains terminate. Hostname check is skipped
@@ -38,10 +41,12 @@ function createPrismaClient(): PrismaClient {
   // contains regional RDS CAs (not Amazon Root CA 1), so the RDS Proxy
   // chain failed to validate. Surfaced as P1011 TlsConnectionError /
   // "unable to get local issuer certificate" at runtime.
-  const ssl: undefined | { checkServerIdentity: () => undefined } | { rejectUnauthorized: false } =
+  const ssl: undefined | { ca: string[] } | { checkServerIdentity: () => undefined } | { rejectUnauthorized: false } =
     isLocalhost
       ? undefined
-      : allowInsecure
+      : caCert
+        ? { ca: [...tls.rootCertificates, caCert] }
+        : allowInsecure
         ? { rejectUnauthorized: false }
         : { checkServerIdentity: () => undefined };
 

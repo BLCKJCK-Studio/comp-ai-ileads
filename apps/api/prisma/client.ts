@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
+import tls from 'node:tls';
 
 const globalForPrisma = global as unknown as { prisma?: PrismaClient };
 
@@ -38,14 +39,20 @@ function createPrismaClient(): PrismaClient {
   //   prod connections to MITM. (Cubic finding #1 on PR #2671.)
   // - Remote with neither: throw at boot — surface the misconfig instead of
   //   silently downgrading.
+  const caCert = process.env.DATABASE_CA_CERT;
   const hasCABundle = !!process.env.NODE_EXTRA_CA_CERTS;
   const allowInsecure = process.env.PRISMA_ALLOW_INSECURE_TLS === '1';
   let ssl:
     | undefined
+    | { ca: string[] }
     | { checkServerIdentity: () => undefined }
     | { rejectUnauthorized: false };
   if (isLocalhost) {
     ssl = undefined;
+  } else if (caCert) {
+    // Private-root providers (e.g. Supabase): add the PEM to Node's roots,
+    // full verification including hostname.
+    ssl = { ca: [...tls.rootCertificates, caCert] };
   } else if (hasCABundle) {
     // Verified TLS: rely on Node's TLS context (NODE_EXTRA_CA_CERTS adds the AWS
     // RDS CA to the trust store). Skip hostname check because connections may

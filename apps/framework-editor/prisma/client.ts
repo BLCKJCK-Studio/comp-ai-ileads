@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
+import tls from 'node:tls';
 
 const globalForPrisma = global as unknown as { prisma?: PrismaClient };
 
@@ -25,14 +26,18 @@ function createPrismaClient(): PrismaClient {
   const rawUrl = process.env.DATABASE_URL!;
   const isLocalhost = isLocalhostUrl(rawUrl);
   const allowInsecure = process.env.PRISMA_ALLOW_INSECURE_TLS === '1';
+  // Private-root providers (e.g. Supabase): add the PEM to Node's roots, full verification.
+  const caCert = process.env.DATABASE_CA_CERT;
 
   // See apps/app/prisma/client.ts for the rationale on dropping `ssl.ca`
   // (replaces rather than augments the trust store; broke RDS Proxy
   // chain validation).
-  const ssl: undefined | { checkServerIdentity: () => undefined } | { rejectUnauthorized: false } =
+  const ssl: undefined | { ca: string[] } | { checkServerIdentity: () => undefined } | { rejectUnauthorized: false } =
     isLocalhost
       ? undefined
-      : allowInsecure
+      : caCert
+        ? { ca: [...tls.rootCertificates, caCert] }
+        : allowInsecure
         ? { rejectUnauthorized: false }
         : { checkServerIdentity: () => undefined };
 

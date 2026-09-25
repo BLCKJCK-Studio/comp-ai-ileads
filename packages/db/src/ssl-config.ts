@@ -1,5 +1,8 @@
+import tls from 'node:tls';
+
 export type SslConfig =
   | undefined
+  | { ca: string[] }
   | { checkServerIdentity: () => undefined }
   | { rejectUnauthorized: false };
 
@@ -22,6 +25,10 @@ export function resolveSslConfig(
   env: Partial<NodeJS.ProcessEnv> = process.env,
 ): SslConfig {
   if (isLocalhostUrl(databaseUrl)) return undefined;
+  // Providers whose chain ends in a private root (e.g. Supabase Root 2021 CA):
+  // append that PEM to Node's default roots and keep full verification,
+  // hostname included. `ca` replaces the trust store, hence the spread.
+  if (env.DATABASE_CA_CERT) return { ca: [...tls.rootCertificates, env.DATABASE_CA_CERT] };
   if (env.PRISMA_ALLOW_INSECURE_TLS === '1') return { rejectUnauthorized: false };
   // Verified TLS via Node's default trust store, which includes Amazon Root
   // CA 1 — where AWS RDS Proxy chains terminate. Hostname check is skipped
