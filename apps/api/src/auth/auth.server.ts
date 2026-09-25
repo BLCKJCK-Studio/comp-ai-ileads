@@ -43,23 +43,9 @@ export {
   isStaticTrustedOrigin,
   isStaticTrustedOriginForRequest,
 } from './origin-policy';
+import { getCookieDomain } from './cookie-domain';
 
 const MAGIC_LINK_EXPIRES_IN_SECONDS = 60 * 60; // 1 hour
-
-/**
- * Determine the cookie domain based on environment.
- */
-function getCookieDomain(): string | undefined {
-  const baseUrl = process.env.BASE_URL || '';
-
-  if (baseUrl.includes('staging.trycomp.ai')) {
-    return '.staging.trycomp.ai';
-  }
-  if (baseUrl.includes('trycomp.ai')) {
-    return '.trycomp.ai';
-  }
-  return undefined;
-}
 
 // ── Custom domain lookup via Redis cache ─────────────────────────────────────
 
